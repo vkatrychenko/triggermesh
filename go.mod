@@ -45,7 +45,7 @@ require (
 	github.com/basgys/goxml2json v1.1.0
 	github.com/devigned/tab v0.1.1
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
-	github.com/fsnotify/fsnotify v1.6.0
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/cel-go v0.11.2
 	github.com/google/go-cmp v0.5.9
