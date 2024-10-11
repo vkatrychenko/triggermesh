@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -52,7 +52,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -78,13 +78,6 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Login to GCR
-      uses: docker/login-action@v2
-      with:
-        registry: gcr.io
-        username: _json_key
-        password: ${{ secrets.GCLOUD_GCR_SERVICEACCOUNT_KEY }}
-
     - name: Set IMAGE_TAG
       id: image-tag
       run: |
@@ -95,38 +88,11 @@ jobs:
     - name: Publish container images to DockerHub
       if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
       env:
-        KO_DOCKER_REPO: docker.io/triggermesh
+        KO_DOCKER_REPO: docker.io/arachidi
         KOFLAGS: --jobs=2 --platform=linux/amd64,linux/arm64,linux/ppc64le --push=${{ github.event_name != 'pull_request' }}
         DIST_DIR: /tmp/dist
       run: |
         IMAGE_TAG=${{ steps.image-tag.outputs.IMAGE_TAG }} make release
-
-    - name: Publish container images to GCR
-      env:
-        KO_DOCKER_REPO: gcr.io/triggermesh
-        DIST_DIR: /tmp/dist
-      run: |
-        pushd hack/manifest-cleaner
-        go install .
-        popd
-
-        if [[ ${GITHUB_REF_TYPE} == "tag" ]]; then
-          export KOFLAGS='--jobs=2 --platform=linux/amd64,linux/arm64,linux/ppc64le --push=${{ github.event_name != 'pull_request' }}'
-        else
-          export KOFLAGS='--jobs=2 --platform=linux/amd64 --push=${{ github.event_name != 'pull_request' }}'
-        fi
-
-        IMAGE_TAG=${{ steps.image-tag.outputs.IMAGE_TAG }} make release
-
-        declare -a release_files=(
-          triggermesh-crds.yaml
-          triggermesh.yaml
-        )
-
-        for f in "${release_files[@]}"; do
-          manifest-cleaner <"${DIST_DIR}/${f}" >"${DIST_DIR}/${f}.clean"
-          mv "${DIST_DIR}/${f}.clean" "${DIST_DIR}/${f}"
-        done
 
     - name: Upload artifact
       uses: actions/upload-artifact@master
@@ -143,10 +109,10 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Checkout triggermesh/config
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: 'tm-config'
         ref: 'main'
@@ -198,7 +164,7 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
