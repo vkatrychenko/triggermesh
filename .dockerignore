@@ -1,0 +1,29 @@
+# Top level files and directories
+#
+# (!) The '.git' directory is purposely not excluded because the Go toolchain
+#     relies on its contents to embed VCS info into binaries.
+#
+/.assets/
+/.circleci/
+/.github/
+/docs/
+/hack/
+!/hack/inc.Codegen.mk
+/schemas/
+/test/
+/.dockerignore
+/.golangci.yaml
+/.ko.yaml
+/CODEOWNERS
+/README.md
+/kustomization.yaml
+
+# Patterns
+**/config/
+**/*.md
+**/*_test.go
+**/.gitignore
+**/Dockerfile
+
+# Binaries
+**/_output/

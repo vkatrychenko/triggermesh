@@ -1,0 +1,101 @@
+name: Static Code Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  lint-code:
+    name: Code Linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.19'
+
+    # This action takes care of caching/restoring modules and build caches.
+    # Therefore, this step should remain the first one that is executed after
+    # the Go setup, in case other steps are added to this job in the future.
+    - name: Lint Go code
+      uses: golangci/golangci-lint-action@v3
+      with:
+        # (hack) By default, errors are reported to the GitHub commit view only
+        # (or the "Files changed" tab on PRs). We also want errors to be logged
+        # with line numbers to the execution logs of the workflow.
+        #
+        # The args below result in the following flags being passed to the
+        # linter command, which works, quite surprisingly:
+        #   --out-format=github-actions --out-format=colored-line-number
+        #
+        # Ref. https://github.com/golangci/golangci-lint-action/issues/119#issuecomment-981090648
+        args: --out-${NO_FUTURE}format=colored-line-number --timeout 15m
+
+  lint-config:
+    name: Configuration Linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.19'
+
+    - name: Go caches
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ github.job }}-${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ github.job }}-${{ runner.os }}-go-
+
+    - name: RBAC rules consistency
+      run: |
+        pushd hack/rbac-check
+        go install .
+        popd
+        rbac-check
+
+    - name: Lint CRD manifests
+      run: |
+        hack/crd-update/update-all-crds.sh
+
+        git_status="$(git status --porcelain)"
+        if [[ ${git_status} ]]; then
+            echo -e 'CRD manifests are out-of-date. Please run `hack/crd-update/update-all-crds.sh`\n'
+            echo "${git_status}"
+            exit 1
+        fi
+
+    - name: Validate CRD annotations
+      run: hack/crd-annotations-check.sh
+
+    - name: Lint Kubernetes manifests
+      id: yamllint
+      uses: ibiqlik/action-yamllint@v3
+      with:
+        file_or_dir: config/
+        config_file: .github/workflows/config/yamllint-k8s.yaml
+        format: github
+
+    # (hack) By default, errors are reported to the GitHub commit view only (or
+    # the "Files changed" tab on PRs).
+    # In case errors were found, run the linter a second time but don't direct
+    # the output to GitHub, so that they are also visible in the execution logs
+    # of the workflow, with line numbers.
+    - name: Lint Kubernetes manifests (debug)
+      if: failure() && steps.yamllint.outcome == 'failure'
+      uses: ibiqlik/action-yamllint@v3
+      with:
+        file_or_dir: config/
+        config_file: .github/workflows/config/yamllint-k8s.yaml
