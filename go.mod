@@ -45,7 +45,7 @@ require (
 	github.com/basgys/goxml2json v1.1.0
 	github.com/devigned/tab v0.1.1
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
-	github.com/fsnotify/fsnotify v1.6.0
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/cel-go v0.11.2
 	github.com/google/go-cmp v0.5.9
@@ -223,7 +223,7 @@ require (
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
